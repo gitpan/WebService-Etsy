@@ -6,3 +6,9 @@
 
     - Fixed an issue with CPAN's indexer.
     - Moved Result objects into an separate class
+
+0.3 2009-02-06
+
+    - Created a generic "get method" method in WebService::Etsy.
+    - Simplified the WebService::Etsy::Methods to use the new method.
+    - Simplified the generate_methods.pl script.

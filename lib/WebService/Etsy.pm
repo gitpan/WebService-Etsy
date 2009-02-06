@@ -3,10 +3,15 @@ package WebService::Etsy;
 use strict;
 use warnings;
 use LWP::UserAgent;
+use JSON;
+use Carp;
+use WebService::Etsy::Response;
+use WebService::Etsy::Result;
+
 use base qw( Class::Accessor WebService::Etsy::Methods );
 __PACKAGE__->mk_accessors( qw( ua api_key base_uri last_error ) );
 
-our $VERSION = '0.2';
+our $VERSION = '0.3';
 
 =head1 NAME
 
@@ -110,6 +115,62 @@ sub new {
     $self->base_uri( $args{ base_uri } || 'http://beta-api.etsy.com/v1' );
     $self->api_key( $args{ api_key } );
     return $self;
+}
+
+sub _call_method {
+    my $self = shift;
+    my $method_info = shift;
+    my %args = @_;
+    for ( qw( ua api_key base_uri ) ) {
+        if ( ! exists $args{ $_ } ) {
+            $args{ $_ } = $self->$_();
+        }
+    }
+    if ( ! $args{ api_key } ) {
+        croak "No API key specified";
+    }
+    my $uri = $method_info->{ uri };
+    my @missing;
+    my %params = %{ $method_info->{ params } };
+    $params{ api_key } = "";
+    while( $uri =~ /{(.+?)}/g ) {
+        my $param = $1;
+        if ( ! exists $args{ $param } ) {
+            push @missing, $param;
+        } else {
+           $uri =~ s/{(.+?)}/$args{ $param }/;
+           delete $params{ $param };
+        }
+    }
+    for ( keys %params ) {
+        if ( $args{ $_ } ) {
+            $params{ $_ } = $args{ $_ };
+        } else {
+            delete $params{ $_ };
+        }
+    }
+    if ( scalar @missing ) {
+        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to " . $method_info->{ name } . ": " . join ", ", @missing );
+        return;
+    }
+    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
+    $uri = $args{ base_uri } . $uri . "?" . $params;
+    my $resp = $args{ ua }->get( $uri );
+    if ( ! $resp->is_success ) {
+        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
+        return;
+    }
+    my $data = from_json( $resp->content );
+    for ( 0 .. $#{ $data->{ results } } ) {
+        if ( ref $data->{ results }->[ $_ ] ) {
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::' . $method_info->{ type };
+        } else {
+            my $value = $data->{ results }->[ $_ ];
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::' . $method_info->{ type };
+        }
+
+    }
+    return bless $data, "WebService::Etsy::Response";
 }
 
 =head1 SEE ALSO

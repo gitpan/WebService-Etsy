@@ -2,1219 +2,247 @@
 package WebService::Etsy::Methods;
 use strict;
 use warnings;
-use JSON;
-use Carp;
-use WebService::Etsy::Response;
-use WebService::Etsy::Result;
+
 sub getUserDetails {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/users/{user_id}";
-    my @missing;
-    my %params = %{ {'user_id' => 'user_id_or_name','detail_level' => 'enum(low, medium, high)'} };
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getUserDetails: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::User';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::User';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getUserDetails',
+        uri  => '/users/{user_id}',
+        type => 'User',
+        params => {'user_id' => 'user_id_or_name','detail_level' => 'enum(low, medium, high)'},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getFavorersOfUser {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/users/{user_id}/favorers";
-    my @missing;
-    my %params = %{ {'limit' => 'int','user_id' => 'user_id_or_name','detail_level' => 'enum(low, medium, high)','offset' => 'int'} };
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getFavorersOfUser: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::User';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::User';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getFavorersOfUser',
+        uri  => '/users/{user_id}/favorers',
+        type => 'User',
+        params => {'limit' => 'int','user_id' => 'user_id_or_name','detail_level' => 'enum(low, medium, high)','offset' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getFavorersOfListing {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/listings/{listing_id}/favorers";
-    my @missing;
-    my %params = %{ {'limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int','listing_id' => 'int'} };
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getFavorersOfListing: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::User';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::User';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getFavorersOfListing',
+        uri  => '/listings/{listing_id}/favorers',
+        type => 'User',
+        params => {'limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int','listing_id' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getUsersByName {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/users/keywords/{search_name}";
-    my @missing;
-    my %params = %{ {'search_name' => 'string','limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int'} };
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getUsersByName: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::User';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::User';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getUsersByName',
+        uri  => '/users/keywords/{search_name}',
+        type => 'User',
+        params => {'search_name' => 'string','limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getShopDetails {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/shops/{user_id}";
-    my @missing;
-    my %params = %{ {'user_id' => 'user_id_or_name','detail_level' => 'enum(low, medium, high)'} };
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getShopDetails: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Shop';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Shop';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getShopDetails',
+        uri  => '/shops/{user_id}',
+        type => 'Shop',
+        params => {'user_id' => 'user_id_or_name','detail_level' => 'enum(low, medium, high)'},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getFeaturedSellers {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/shops/featured";
-    my @missing;
-    my %params = %{ {'limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int'} };
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getFeaturedSellers: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Shop';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Shop';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getFeaturedSellers',
+        uri  => '/shops/featured',
+        type => 'Shop',
+        params => {'limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getShopsByName {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/shops/keywords/{search_name}";
-    my @missing;
-    my %params = %{ {'sort_order' => 'enum(up, down)','search_name' => 'string','limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int'} };
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getShopsByName: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Shop';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Shop';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getShopsByName',
+        uri  => '/shops/keywords/{search_name}',
+        type => 'Shop',
+        params => {'sort_order' => 'enum(up, down)','search_name' => 'string','limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getFavoriteShopsOfUser {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/users/{user_id}/favorites/shops";
-    my @missing;
-    my %params = %{ {'limit' => 'int','user_id' => 'user_id_or_name','detail_level' => 'enum(low, medium, high)','offset' => 'int'} };
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getFavoriteShopsOfUser: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Shop';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Shop';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getFavoriteShopsOfUser',
+        uri  => '/users/{user_id}/favorites/shops',
+        type => 'Shop',
+        params => {'limit' => 'int','user_id' => 'user_id_or_name','detail_level' => 'enum(low, medium, high)','offset' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getListingDetails {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/listings/{listing_id}";
-    my @missing;
-    my %params = %{ {'detail_level' => 'enum(low, medium, high)','listing_id' => 'int'} };
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getListingDetails: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Listing';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Listing';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getListingDetails',
+        uri  => '/listings/{listing_id}',
+        type => 'Listing',
+        params => {'detail_level' => 'enum(low, medium, high)','listing_id' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getListings {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/shops/{user_id}/listings";
-    my @missing;
-    my %params = %{ {'limit' => 'int','user_id' => 'user_id_or_name','detail_level' => 'enum(low, medium, high)','offset' => 'int'} };
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getListings: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Listing';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Listing';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getListings',
+        uri  => '/shops/{user_id}/listings',
+        type => 'Listing',
+        params => {'limit' => 'int','user_id' => 'user_id_or_name','detail_level' => 'enum(low, medium, high)','offset' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getFeaturedDetails {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/shops/{user_id}/listings/featured";
-    my @missing;
-    my %params = %{ {'user_id' => 'user_id_or_name','detail_level' => 'enum(low, medium, high)'} };
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getFeaturedDetails: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Listing';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Listing';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getFeaturedDetails',
+        uri  => '/shops/{user_id}/listings/featured',
+        type => 'Listing',
+        params => {'user_id' => 'user_id_or_name','detail_level' => 'enum(low, medium, high)'},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getFrontFeaturedListings {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/listings/featured/front";
-    my @missing;
-    my %params = %{ {'limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int'} };
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getFrontFeaturedListings: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Listing';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Listing';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getFrontFeaturedListings',
+        uri  => '/listings/featured/front',
+        type => 'Listing',
+        params => {'limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getFavoriteListingsOfUser {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/users/{user_id}/favorites/listings";
-    my @missing;
-    my %params = %{ {'limit' => 'int','user_id' => 'user_id_or_name','detail_level' => 'enum(low, medium, high)','offset' => 'int'} };
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getFavoriteListingsOfUser: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Listing';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Listing';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getFavoriteListingsOfUser',
+        uri  => '/users/{user_id}/favorites/listings',
+        type => 'Listing',
+        params => {'limit' => 'int','user_id' => 'user_id_or_name','detail_level' => 'enum(low, medium, high)','offset' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getGiftGuideListings {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/gift-guides/{guide_id}/listings";
-    my @missing;
-    my %params = %{ {'guide_id' => 'int','limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int'} };
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getGiftGuideListings: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Listing';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Listing';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getGiftGuideListings',
+        uri  => '/gift-guides/{guide_id}/listings',
+        type => 'Listing',
+        params => {'guide_id' => 'int','limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getListingsByKeyword {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/listings/keywords/{search_terms}";
-    my @missing;
-    my %params = %{ {'sort_order' => 'enum(up, down)','search_terms' => 'string','min_price' => 'float','max_price' => 'float','sort_on' => 'enum(created, updated, title, price, id)','search_description' => 'enum(true, false)','limit' => 'int','offset' => 'int','detail_level' => 'enum(low, medium, high)'} };
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getListingsByKeyword: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Listing';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Listing';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getListingsByKeyword',
+        uri  => '/listings/keywords/{search_terms}',
+        type => 'Listing',
+        params => {'sort_order' => 'enum(up, down)','search_terms' => 'string','min_price' => 'float','max_price' => 'float','sort_on' => 'enum(created, updated, title, price, id)','search_description' => 'enum(true, false)','limit' => 'int','offset' => 'int','detail_level' => 'enum(low, medium, high)'},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getListingsByTags {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/listings/tags/{tags}";
-    my @missing;
-    my %params = %{ {'limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int','tags' => 'string'} };
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getListingsByTags: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Listing';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Listing';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getListingsByTags',
+        uri  => '/listings/tags/{tags}',
+        type => 'Listing',
+        params => {'limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int','tags' => 'string'},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getChildTags {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/tags/{tag}/children";
-    my @missing;
-    my %params = %{ {'tag' => 'string'} };
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getChildTags: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Tag';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Tag';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getChildTags',
+        uri  => '/tags/{tag}/children',
+        type => 'Tag',
+        params => {'tag' => 'string'},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getTopTags {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/tags/top";
-    my @missing;
-    my %params = ();
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getTopTags: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Tag';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Tag';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getTopTags',
+        uri  => '/tags/top',
+        type => 'Tag',
+        params => {},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getGiftGuides {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/gift-guides";
-    my @missing;
-    my %params = ();
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getGiftGuides: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::GiftGuide';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::GiftGuide';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getGiftGuides',
+        uri  => '/gift-guides',
+        type => 'GiftGuide',
+        params => {},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getMethodTable {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/";
-    my @missing;
-    my %params = ();
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getMethodTable: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Method';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Method';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getMethodTable',
+        uri  => '/',
+        type => 'Method',
+        params => {},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub getServerEpoch {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/server/epoch";
-    my @missing;
-    my %params = ();
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to getServerEpoch: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Int';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Int';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'getServerEpoch',
+        uri  => '/server/epoch',
+        type => 'Int',
+        params => {},
+    };
+    return $self->_call_method( $info, @_ );
 }
 
 sub ping {
     my $self = shift;
-    my %args = @_;
-    for ( qw( ua api_key base_uri ) ) {
-        if ( ! exists $args{ $_ } ) {
-            $args{ $_ } = $self->$_();
-        }
-    }
-    if ( ! $args{ api_key } ) {
-        croak "No API key specified";
-    }
-    my $uri = "/server/ping";
-    my @missing;
-    my %params = ();
-    $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
-        my $param = $1;
-        if ( ! exists $args{ $param } ) {
-            push @missing, $param;
-        } else {
-           $uri =~ s/{(.+?)}/$args{ $param }/;
-           delete $params{ $param };
-        }
-    }
-    for ( keys %params ) {
-        if ( $args{ $_ } ) {
-            $params{ $_ } = $args{ $_ };
-        } else {
-            delete $params{ $_ };
-        }
-    }
-    if ( scalar @missing ) {
-        $self->last_error( "Missing required argument" . ( ( scalar @missing > 1 ) ? "s" : "" ) . " in call to ping: " . join ", ", @missing );
-        return;
-    }
-    my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
-    my $resp = $args{ ua }->get( $uri );
-    if ( ! $resp->is_success ) {
-        $self->last_error( "Error getting resource $uri: " . $resp->status_line );
-        return;
-    }
-    my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::String';
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::String';
-        }
-
-    }
-    return bless $data, "WebService::Etsy::Response";
+    my $info = {
+        name => 'ping',
+        uri  => '/server/ping',
+        type => 'String',
+        params => {},
+    };
+    return $self->_call_method( $info, @_ );
 }
-
 
 1;
