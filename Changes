@@ -1,3 +1,8 @@
 0.1 2009-02-05
 
-    - Initial very-alpha release
+    - Initial very-alpha release.
+
+0.2 2009-02-06
+
+    - Fixed an issue with CPAN's indexer.
+    - Moved Result objects into an separate class

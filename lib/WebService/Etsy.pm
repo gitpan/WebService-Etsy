@@ -6,7 +6,7 @@ use LWP::UserAgent;
 use base qw( Class::Accessor WebService::Etsy::Methods );
 __PACKAGE__->mk_accessors( qw( ua api_key base_uri last_error ) );
 
-our $VERSION = '0.1';
+our $VERSION = '0.2';
 
 =head1 NAME
 
@@ -26,29 +26,29 @@ WebService::Etsy - Access the Etsy REST API.
     print "Found: " . $resp->count . " users\n";
     print "Have: " . scalar @{ $resp->results } . " results\n";
 
-    # But also behaves like an arrayref of results
+    # But also behaves like an arrayref of Result objects
     for ( @$resp ) {
         # Results are objects, like WebService::Etsy::User
         print $_->user_name, "\n";
     }
 
     $resp = $api->getUserDetails( user_id => 'testuser' );
-    # As a convenience, you can call result object methods
-    # on the response object, which will be called on the first
-    # result object so
+    # As a convenience, you can call Result object methods
+    # on the Response object, which will be called on the first
+    # Result object so
     print $resp->user_name, "\n";
     # is the same as
     print $resp->[ 0 ]->user_name, "\n";
 
 =head1 DESCRIPTION
 
-Note: this module is alpha code - a fairly functional proof of concept. The API itself is in beta. Details are at <http://www.etsy.com/storque/etsy-news/tech-updates-handmade-code-etsys-beta-api-3055/>.
+Note: this module is alpha code - a fairly functional proof of concept. The API itself is in beta. Details are at L<http://www.etsy.com/storque/etsy-news/tech-updates-handmade-code-etsys-beta-api-3055/>.
 
 This module accesses the Etsy API, as described at L<http://developer.etsy.com/>.
 
 The API is RESTful, and returns JSON. This module abstracts this away to present a standard Perl object interface.
 
-The API methods are generated from details returned by the C<getMethodsTable>  method. A pre-built package containing the methods is shipping with this distribution, but you can re-build it using the "generate_methods.pl" script that is distributed with this code:
+The API methods are generated from details returned by the C<getMethodsTable> API method. A pre-built package containing the methods is shipped with this distribution, but you can re-build it using the "generate_methods.pl" script that is distributed with this code:
 
    perl generate_methods.pl api_key > Methods.pm
 
@@ -58,7 +58,7 @@ Currently the data is provided just as it comes back from the Etsy API. Future d
 
 Calls to the API methods of the C<WebService::Etsy> object will return a L<WebService::Etsy::Response> object. See that object's documentation on the methods available.
 
-The response object contains an array of result objects, which implement interfaces to match the documentation at L<http://developer.etsy.com/docs#resource_types>. See the L<WebService::Etsy::Response> page for documentation on specific methods.
+The Response object contains an arrayref of L<WebService::Etsy::Result> objects, which implement interfaces to match the documentation at L<http://developer.etsy.com/docs#resource_types>. See the L<WebService::Etsy::Result> page for documentation on specific methods.
 
 =head1 METHODS
 
@@ -111,6 +111,10 @@ sub new {
     $self->api_key( $args{ api_key } );
     return $self;
 }
+
+=head1 SEE ALSO
+
+L<http://www.etsy.com/storque/etsy-news/tech-updates-handmade-code-etsys-beta-api-3055/>, L<http://developer.etsy.com/>, L<WebService::Etsy::Response>, L<WebService::Etsy::Result>.
 
 =head1 AUTHOR
 

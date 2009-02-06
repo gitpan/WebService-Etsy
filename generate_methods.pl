@@ -20,7 +20,16 @@ my $method_response = from_json $resp->content;
 
 $Data::Dumper::Terse = 1;
 $Data::Dumper::Indent = 0;
-print "package WebService::Etsy::Methods;\nuse strict;\nuse warnings;\nuse JSON;\nuse Carp;\nuse WebService::Etsy::Response;\n\n";
+print qq(
+package WebService::Etsy::Methods;
+use strict;
+use warnings;
+use JSON;
+use Carp;
+use WebService::Etsy::Response;
+use WebService::Etsy::Result;
+);
+
 my $method_template = join "", <DATA>;
 my %typeMap = (
     int          => 'Int',
@@ -91,10 +100,10 @@ sub [% name %] {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::[% type %]';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::[% type %]';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::[% type %]';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::[% type %]';
         }
 
     }

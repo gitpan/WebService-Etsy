@@ -1,10 +1,11 @@
+
 package WebService::Etsy::Methods;
 use strict;
 use warnings;
 use JSON;
 use Carp;
 use WebService::Etsy::Response;
-
+use WebService::Etsy::Result;
 sub getUserDetails {
     my $self = shift;
     my %args = @_;
@@ -50,10 +51,10 @@ sub getUserDetails {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::User';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::User';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::User';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::User';
         }
 
     }
@@ -105,10 +106,10 @@ sub getFavorersOfUser {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::User';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::User';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::User';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::User';
         }
 
     }
@@ -160,10 +161,10 @@ sub getFavorersOfListing {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::User';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::User';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::User';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::User';
         }
 
     }
@@ -215,10 +216,10 @@ sub getUsersByName {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::User';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::User';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::User';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::User';
         }
 
     }
@@ -270,10 +271,10 @@ sub getShopDetails {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Shop';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Shop';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Shop';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Shop';
         }
 
     }
@@ -325,10 +326,10 @@ sub getFeaturedSellers {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Shop';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Shop';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Shop';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Shop';
         }
 
     }
@@ -380,10 +381,10 @@ sub getShopsByName {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Shop';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Shop';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Shop';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Shop';
         }
 
     }
@@ -435,10 +436,10 @@ sub getFavoriteShopsOfUser {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Shop';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Shop';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Shop';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Shop';
         }
 
     }
@@ -490,10 +491,10 @@ sub getListingDetails {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Listing';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Listing';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Listing';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Listing';
         }
 
     }
@@ -545,10 +546,10 @@ sub getListings {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Listing';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Listing';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Listing';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Listing';
         }
 
     }
@@ -600,10 +601,10 @@ sub getFeaturedDetails {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Listing';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Listing';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Listing';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Listing';
         }
 
     }
@@ -655,10 +656,10 @@ sub getFrontFeaturedListings {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Listing';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Listing';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Listing';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Listing';
         }
 
     }
@@ -710,10 +711,10 @@ sub getFavoriteListingsOfUser {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Listing';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Listing';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Listing';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Listing';
         }
 
     }
@@ -765,10 +766,10 @@ sub getGiftGuideListings {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Listing';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Listing';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Listing';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Listing';
         }
 
     }
@@ -820,10 +821,10 @@ sub getListingsByKeyword {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Listing';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Listing';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Listing';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Listing';
         }
 
     }
@@ -875,10 +876,10 @@ sub getListingsByTags {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Listing';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Listing';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Listing';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Listing';
         }
 
     }
@@ -930,10 +931,10 @@ sub getChildTags {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Tag';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Tag';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Tag';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Tag';
         }
 
     }
@@ -985,10 +986,10 @@ sub getTopTags {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Tag';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Tag';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Tag';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Tag';
         }
 
     }
@@ -1040,10 +1041,10 @@ sub getGiftGuides {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::GiftGuide';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::GiftGuide';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::GiftGuide';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::GiftGuide';
         }
 
     }
@@ -1095,10 +1096,10 @@ sub getMethodTable {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Method';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Method';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Method';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Method';
         }
 
     }
@@ -1150,10 +1151,10 @@ sub getServerEpoch {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Int';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::Int';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Int';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::Int';
         }
 
     }
@@ -1205,10 +1206,10 @@ sub ping {
     my $data = from_json( $resp->content );
     for ( 0 .. $#{ $data->{ results } } ) {
         if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::String';
+            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::String';
         } else {
             my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::String';
+            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::String';
         }
 
     }
