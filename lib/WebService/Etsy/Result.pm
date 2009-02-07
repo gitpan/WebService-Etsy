@@ -84,14 +84,14 @@ __PACKAGE__->mk_accessors( qw( user_name user_id url image_url_25x25 image_url_3
 
 =head2 WebService::Etsy::Result::Shop
 
-The object includes methods corresponding to the field values described at L<http://developer.etsy.com/docs#shops>.
+The object includes methods corresponding to the field values described at L<http://developer.etsy.com/docs#shops>. Note that it extends the C<WebService::Etsy::Result::User> class.
 
 Some of the methods may return undef if the relevant detail level was not requested.
 
 =cut
 
 package WebService::Etsy::Result::Shop;
-use base qw( Class::Accessor );
+use base qw( Class::Accessor WebService::Etsy::Result::User );
 __PACKAGE__->mk_accessors( qw( banner_image_url last_updated_epoch creation_epoch listing_count shop_name title sale_message announcement is_vacation vacation_message currency_code ) );
 
 #-------
@@ -145,7 +145,7 @@ Ian Malpass (ian-cpan@indecorous.com)
 
 =head1 COPYRIGHT
 
-Copyright 2003-2007, Ian Malpass
+Copyright 2009, Ian Malpass
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

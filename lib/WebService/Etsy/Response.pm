@@ -111,7 +111,7 @@ Ian Malpass (ian-cpan@indecorous.com)
 
 =head1 COPYRIGHT
 
-Copyright 2003-2007, Ian Malpass
+Copyright 2009, Ian Malpass
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

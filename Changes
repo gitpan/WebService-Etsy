@@ -12,3 +12,7 @@
     - Created a generic "get method" method in WebService::Etsy.
     - Simplified the WebService::Etsy::Methods to use the new method.
     - Simplified the generate_methods.pl script.
+
+0.4 2009-02-06
+
+    - Fixed a bug in WebService::Etsy::Result::Shop - should extend WebService::Etsy::Result::User
