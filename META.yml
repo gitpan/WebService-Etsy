@@ -1,6 +1,6 @@
 ---
 name: WebService-Etsy
-version: 0.4
+version: 0.5
 author:
   - Ian Malpass (ian-cpan@indecorous.com)
 abstract: Access the Etsy REST API.
@@ -15,12 +15,16 @@ build_requires:
 provides:
   WebService::Etsy:
     file: lib/WebService/Etsy.pm
-    version: 0.4
+    version: 0.5
   WebService::Etsy::Methods:
     file: lib/WebService/Etsy/Methods.pm
   WebService::Etsy::Response:
     file: lib/WebService/Etsy/Response.pm
   WebService::Etsy::Result:
+    file: lib/WebService/Etsy/Result.pm
+  WebService::Etsy::Result::Category:
+    file: lib/WebService/Etsy/Result.pm
+  WebService::Etsy::Result::Feedback:
     file: lib/WebService/Etsy/Result.pm
   WebService::Etsy::Result::GiftGuide:
     file: lib/WebService/Etsy/Result.pm
@@ -28,9 +32,13 @@ provides:
     file: lib/WebService/Etsy/Result.pm
   WebService::Etsy::Result::Listing:
     file: lib/WebService/Etsy/Result.pm
+  WebService::Etsy::Result::Material:
+    file: lib/WebService/Etsy/Result.pm
   WebService::Etsy::Result::Method:
     file: lib/WebService/Etsy/Result.pm
   WebService::Etsy::Result::Shop:
+    file: lib/WebService/Etsy/Result.pm
+  WebService::Etsy::Result::ShopSection:
     file: lib/WebService/Etsy/Result.pm
   WebService::Etsy::Result::String:
     file: lib/WebService/Etsy/Result.pm

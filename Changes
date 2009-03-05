@@ -16,3 +16,15 @@
 0.4 2009-02-06
 
     - Fixed a bug in WebService::Etsy::Result::Shop - should extend WebService::Etsy::Result::User
+
+0.5 -
+
+    - Added shop() method to WebService::Etsy::Result::User
+    - Added listings() method to WebService::Etsy::Result::Shop
+    - Added listings() method to WebService::Etsy::Result::GiftGuide
+    - Added children() and spaced() methods to WebService::Etsy::Result::Tag
+    - Added default_detail() and default_limit() methods and constructor params to WebService::Etsy
+    - Added logging options
+    - Restructured the code generating Result objects.
+    - Added WebService::Etsy::Result::ShopSection and made the Shop object's sections() method return an array of them.
+    - Made WebService::Etsy::Result::Listing return an array of Tag objects for tags and Material objects for materials.

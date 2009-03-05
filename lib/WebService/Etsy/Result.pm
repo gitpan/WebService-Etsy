@@ -2,6 +2,8 @@ package WebService::Etsy::Result;
 
 use strict;
 use warnings;
+use base qw( Class::Accessor );
+__PACKAGE__->mk_accessors( qw( api detail_level ) );
 
 =head1 NAME
 
@@ -24,6 +26,47 @@ The API returns different result types - shops, users, listings, methods, tags, 
 
 Each return type has its own corresponding Perl class, with methods appropriate to its contents.
 
+=cut
+
+=head1 METHODS
+
+=over 4
+
+=item C<new( $data )>
+
+Constructor method inherited by Result classes from the Result base class. Takes the data for the result as extracted from the API response.
+
+Generally only called by other methods in this library.
+
+=back
+
+=cut
+
+sub new {
+    my $proto = shift;
+    my $class = ref $proto || $proto;
+    my $data = shift;
+    my $self;
+    if ( ref $data ) {
+        $self = bless $data, $class;
+    } else {
+        $self = bless {}, $class;
+        $self->value( $data );
+    }
+    $self->_init( @_ );
+    return $self;
+}
+
+sub _init {
+    my $self = shift;
+    my %params = @_;
+    for ( qw( detail_level api ) ) {
+        if ( $params{ $_ } ) {
+            $self->$_( $params{ $_ } );
+        }
+    }
+}
+
 =head1 RESULT OBJECTS
 
 =head2 WebService::Etsy::Result::String
@@ -33,16 +76,14 @@ The object behaves just like a string in scalar context. It does provide a C<val
 =cut
 
 package WebService::Etsy::Result::String;
+use base qw( WebService::Etsy::Result );
+__PACKAGE__->mk_accessors( qw( value ) );
 
 use overload '""' => "stringify", fallback => 1;
 
 sub stringify {
-    return ${ $_[ 0 ] };
+    return $_[ 0 ]->value;
 }    
-
-sub value {
-    return $_[ 0 ]->stringify;
-} 
 
 #-------
 
@@ -57,14 +98,83 @@ use base qw( WebService::Etsy::Result::String );
 
 #-------
 
+=head2 WebService::Etsy::Result::Material
+
+The object behaves just like a string in scalar context. It does provide a C<value()> method if you need it.
+
+=cut
+
+package WebService::Etsy::Result::Material;
+use base qw( WebService::Etsy::Result::String );
+
+#-------
+
 =head2 WebService::Etsy::Result::Tag
 
-The object behaves just like an string in scalar context. It does provide a C<value()> method if you need it.
+The object behaves just like a string in scalar context. It does provide a C<value()> method if you need it.
+
+=head3 Additional methods
+
+=over 4
+
+=item C<spaced>
+
+The string value of the tag with underscores translated to spaces.
+
+=item C<children>
+
+The "child tags" of this tag. Equivalent to calling C<getChildTags> with this tag as the parameter. You can pass in any other parameters C<getChildTags> accepts.
+
+=back
 
 =cut
 
 package WebService::Etsy::Result::Tag;
 use base qw( WebService::Etsy::Result::String );
+__PACKAGE__->mk_accessors( qw( spaced ) );
+
+sub children {
+    my $self = shift;
+    return $self->api->getChildTags( tag => $self );
+}
+
+sub _init {
+    my $self = shift;
+    $self->SUPER::_init( @_ );
+    my $value = $self->value;
+    $value =~ s/_/ /g;
+    $self->spaced( $value );
+}
+
+#-------
+
+=head2 WebService::Etsy::Result::Category
+
+The object behaves just like a string in scalar context. It does provide a C<value()> method if you need it.
+
+=head3 Additional methods
+
+=over 4
+
+=item C<spaced>
+
+The string value of the category with underscores translated to spaces.
+
+=item C<children>
+
+The "child categories" of this tag. Equivalent to calling C<getChildCategories> with this category as the parameter. You can pass in any other parameters C<getChildCategories> accepts.
+
+=back
+
+=cut
+
+package WebService::Etsy::Result::Category;
+use base qw( WebService::Etsy::Result::Tag );
+
+sub children {
+    my $self = shift;
+    return $self->api->getChildCategories( category => $self );
+}
 
 #-------
 
@@ -74,11 +184,39 @@ The object includes methods corresponding to the field values described at L<htt
 
 Some of the methods may return undef if the relevant detail level was not requested.
 
+=head3 Additional methods
+
+=over 4
+
+=item C<shop>
+
+If the user is a seller, returns the shop object for the user. Equivalent to calling C<getShopDetails> with this user's ID as the parameter. You can pass in any other parameters C<getShopDetails> accepts.
+
+=back
+
 =cut
 
 package WebService::Etsy::Result::User;
-use base qw( Class::Accessor );
-__PACKAGE__->mk_accessors( qw( user_name user_id url image_url_25x25 image_url_30x30 image_url_50x50 image_url_75x75 join_epoch city gender lat lon transaction_buy_count transaction_sold_count is_seller was_featured_seller materials last_login_epoch referred_user_count birth_day birth_month bio ) );
+use base qw( WebService::Etsy::Result );
+__PACKAGE__->mk_accessors( qw( user_name user_id url image_url_25x25 image_url_30x30 image_url_50x50 image_url_75x75 join_epoch city gender lat lon transaction_buy_count transaction_sold_count is_seller was_featured_seller materials last_login_epoch referred_user_count birth_day birth_month bio feedback_count feedback_percent_positive ) );
+
+sub shop {
+    my $self = shift;
+    my $seller = $self->is_seller;
+    if ( ! defined $seller ) {
+        $self->api->last_error( qq[Insufficient detail to tell if user "] . $self->user_name . qq[" (] . $self->user_id . qq[) is a seller] );
+        return;
+    } elsif ( $seller ) {
+        my %params = ( user_id => $self->user_id, @_ );
+        if ( !exists $params{ detail_level } ) {
+            $params{ detail_level } = $self->detail_level;
+        }
+        return $self->api->getShopDetails( %params );
+    } else {
+        $self->api->last_error( qq[User "] . $self->user_name . qq[" (] . $self->user_id . qq[) is not a seller] );
+        return;
+    }
+}
 
 #-------
 
@@ -88,11 +226,45 @@ The object includes methods corresponding to the field values described at L<htt
 
 Some of the methods may return undef if the relevant detail level was not requested.
 
+=head3 Additional methods
+
+=over 4
+
+=item C<listings>
+
+Get the listings for the shop. Equivalent to calling C<getListings> with this shop's ID as the parameter. You can pass in any other parameters C<getListings> accepts.
+
+=back
+
 =cut
 
 package WebService::Etsy::Result::Shop;
-use base qw( Class::Accessor WebService::Etsy::Result::User );
-__PACKAGE__->mk_accessors( qw( banner_image_url last_updated_epoch creation_epoch listing_count shop_name title sale_message announcement is_vacation vacation_message currency_code ) );
+use base qw( WebService::Etsy::Result::User );
+__PACKAGE__->mk_accessors( qw( banner_image_url last_updated_epoch creation_epoch listing_count shop_name title sale_message announcement is_vacation vacation_message currency_code sections ) );
+
+sub listings {
+    my $self = shift;
+    my %params = ( user_id => $self->user_id, @_ );
+    if ( !exists $params{ detail_level } ) {
+        $params{ detail_level } = $self->detail_level;
+    }
+    return $self->api->getShopListings( %params );
+}
+
+sub _init {
+    my $self = shift;
+    $self->SUPER::_init( @_ );
+    my $sections = $self->sections;
+    if ( ! $sections ) {
+        return;
+    }
+    my $api = $self->api;
+    for ( @$sections ) {
+        $_ = WebService::Etsy::Result::ShopSection->new( $_, api => $api );
+        $_->shop( $self );
+    }
+    $self->sections( $sections );
+}
 
 #-------
 
@@ -102,23 +274,196 @@ The object includes methods corresponding to the field values described at L<htt
 
 Some of the methods may return undef if the relevant detail level was not requested.
 
+=head3 Additional methods
+
+=over 4
+
+=item C<shop>
+
+Return the shop object for the listing's seller. Equivalent to calling C<getShopDetails> with this listing's shop ID as the parameter. You can pass in any other parameters C<getShopDetails> accepts.
+
+=back
+
 =cut
 
 package WebService::Etsy::Result::Listing;
-use base qw( Class::Accessor );
-__PACKAGE__->mk_accessors( qw( listing_id state title url image_url_25x25 image_url_50x50 image_url_75x75 image_url_155x125 image_url_200x200 image_url_430xN creation_epoch views tags materials price currency_code ending_epoch user_id user_name quantity description lat lon city ) );
+use base qw( WebService::Etsy::Result );
+__PACKAGE__->mk_accessors( qw( listing_id state title url image_url_25x25 image_url_50x50 image_url_75x75 image_url_155x125 image_url_200x200 image_url_430xN creation_epoch views tags materials price currency_code ending_epoch user_id user_name quantity description lat lon city section_id section_title hsv_color rgb_color ) );
 
+sub shop {
+    my $self = shift;
+    my $seller = $self->user_id;
+    if ( ! defined $seller ) {
+        $self->api->last_error( qq[Insufficient detail to determine shop for listing ] . $self->listing_id );
+        return;
+    } else {
+        my %params = ( user_id => $seller, @_ );
+        if ( !exists $params{ detail_level } ) {
+            $params{ detail_level } = $self->detail_level;
+        }
+        return $self->api->getShopDetails( %params );
+    }
+}
+
+sub _init {
+    my $self = shift;
+    $self->SUPER::_init( @_ );
+    my $api = $self->api;
+    my $tags = $self->tags;
+    if ( $tags ) {
+        for ( @$tags ) {
+            $_ = WebService::Etsy::Result::Tag->new( $_, api => $api );
+        }
+        $self->tags( $tags );
+    }
+    my $materials = $self->materials;
+    if ( $materials ) {
+        for ( @$materials ) {
+            $_ = WebService::Etsy::Result::Material->new( $_, api => $api );
+        }
+        $self->materials( $materials );
+    }
+}
 #-------
 
 =head2 WebService::Etsy::Result::GiftGuide
 
 The object includes methods corresponding to the field values described at L<http://developer.etsy.com/docs#gift_guides>.
 
+=head3 Additional methods
+
+=over 4
+
+=item C<listings>
+
+Return the listings in the guide. Equivalent to calling C<getGiftGuides> with this guide's ID as the parameter. You can pass in any other parameters C<getGiftGuides> accepts.
+
+=back
+
 =cut
 
 package WebService::Etsy::Result::GiftGuide;
-use base qw( Class::Accessor );
+use base qw( WebService::Etsy::Result );
 __PACKAGE__->mk_accessors( qw( guide_id creation_tsz_epoch description title display_order guide_section_id guide_section_title ) );
+
+sub listings {
+    my $self = shift;
+    my %params = ( guide_id => $self->guide_id, @_ );
+    if ( !exists $params{ detail_level } ) {
+        $params{ detail_level } = $self->detail_level;
+    }
+    return $self->api->getGiftGuideListings( %params );
+}
+
+#-------
+
+=head2 WebService::Etsy::Result::Feedback
+
+The object includes methods corresponding to the field values described at L<http://developer.etsy.com/docs#feedback>.
+
+=head3 Additional methods
+
+=over 4
+
+=item C<buyer()>
+
+Get the user object of the buyer. Equivalent to calling C<getUserDetails> with this user's ID as the parameter. You can pass in any other parameters C<getUserDetails> accepts.
+
+=item C<seller()>
+
+Get the shop object of the seller. Equivalent to calling C<getShopDetails> with this user's ID as the parameter. You can pass in any other parameters C<getShopDetails> accepts.
+
+=item C<author()>
+
+Get the user or shop object of the author (user if the buyer is the author, shop if the seller is the author). Equivalent to calling C<getUserDetails> (or C<getShopDetails>) with this user's ID as the parameter. You can pass in any other parameters C<getUserDetails> (or C<getShopDetails>) accepts.
+
+=item C<subject()>
+
+Get the user or shop object of the subject (user if the buyer is the subject, shop if the seller is the subject). Equivalent to calling C<getUserDetails> (or C<getShopDetails>) with this user's ID as the parameter. You can pass in any other parameters C<getUserDetails> (or C<getShopDetails>) accepts.
+
+=item C<from_buyer()>
+
+Boolean - is the feedback from a buyer?
+
+=item C<from_seller()>
+
+Boolean - is the feedback from a seller?
+
+=back
+
+=cut
+
+package WebService::Etsy::Result::Feedback;
+use base qw( WebService::Etsy::Result );
+__PACKAGE__->mk_accessors( qw( creation_epoch feedback_id author_user_id subject_user_id seller_user_id buyer_user_id message disposition image_url_25x25 image_url_fullxfull from_seller from_buyer ) );
+
+sub _init {
+    my $self = shift;
+    $self->SUPER::_init( @_ );
+    if ( $self->author_user_id == $self->buyer_user_id ) {
+        $self->from_seller( 0 );
+        $self->from_buyer( 1 );
+    } else {
+        $self->from_seller( 1 );
+        $self->from_buyer( 0 );
+    }
+}
+
+sub _getUser {
+    my $self = shift;
+    my %params = @_;
+    my $method = ( $params{ get_shop } ) ? "getShopDetails" : "getUserDetails";
+    delete $params{ get_shop };
+    return $self->api->$method( %params );
+}
+
+sub buyer {
+    my $self = shift;
+    return $self->_getUser( user_id => $self->buyer_user_id, @_ );
+}
+
+sub seller {
+    my $self = shift;
+    return $self->_getUser( get_shop => 1, user_id => $self->seller_user_id, @_ );
+}
+
+sub author {
+    my $self = shift;
+    return $self->_getUser( get_shop => $self->from_seller, user_id => $self->author_user_id, @_ );
+}
+
+sub subject {
+    my $self = shift;
+    return $self->_getUser( get_shop => ! $self->from_seller, user_id => $self->subject_user_id, @_ );
+}
+
+#-------
+
+=head2 WebService::Etsy::Result::ShopSection
+
+The object includes methods corresponding to the field values described at L<http://developer.etsy.com/docs#shop_sections>.
+
+=head3 Additional methods
+
+=over 4
+
+=item C<listings()>
+
+Get the listings in a section. Equivalent to calling C<getShopListings> section's ID as the section parameter. You can pass in any other parameters C<getShopListings> accepts.
+
+=back
+
+=cut
+
+package WebService::Etsy::Result::ShopSection;
+use base qw( WebService::Etsy::Result );
+__PACKAGE__->mk_accessors( qw( shop section_id title listing_count ) );
+
+sub listings {
+    my $self = shift;
+    my %params = ( user_id => $self->shop->user_id, section_id => $self->section_id, @_ );
+    return $self->api->getShopListings( %params );
+}
 
 #-------
 
@@ -129,7 +474,7 @@ The object includes methods corresponding to the field values described at L<htt
 =cut
 
 package WebService::Etsy::Result::Method;
-use base qw( Class::Accessor );
+use base qw( WebService::Etsy::Result );
 __PACKAGE__->mk_accessors( qw( name description uri params type http_method ) );
 
 package WebService::Etsy::Result;

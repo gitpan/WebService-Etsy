@@ -6,12 +6,13 @@ use LWP::UserAgent;
 use JSON;
 use Carp;
 use WebService::Etsy::Response;
+use IO::File;
 use WebService::Etsy::Result;
 
 use base qw( Class::Accessor WebService::Etsy::Methods );
-__PACKAGE__->mk_accessors( qw( ua api_key base_uri last_error ) );
+__PACKAGE__->mk_accessors( qw( ua api_key base_uri last_error default_detail_level default_limit _log_fh ) );
 
-our $VERSION = '0.4';
+our $VERSION = '0.5';
 
 =head1 NAME
 
@@ -71,7 +72,7 @@ The Response object contains an arrayref of L<WebService::Etsy::Result> objects,
 
 =item C<new( %opts )>
 
-Create a new API object. Takes a hash of options which can include C<ua>, C<api_key>, and C<base_uri>, which correspond to setting the values of the relevant methods (described below).
+Create a new API object. Takes a hash of options which can include C<ua>, C<api_key>, C<base_uri>, C<log_file>, C<default_limit>, and C<default_detail_level>, which correspond to setting the values of the relevant methods (described below).
 
 =item C<api_key( $key )>
 
@@ -87,9 +88,25 @@ Get/set the user agent object that will be used to access the API server. The ag
 
 By default, it's an LWP::UserAgent with the agent string "WebService::Etsy".
 
+=item C<default_limit( $limit )>
+
+Get/set the default limit parameter for a request for those methods that accept a limit parameter. Takes an integer 1-50. Default is 10.
+
+=item C<default_detail_level( $level )>
+
+Get/set the default detail level to request for those methods that accept such a parameter. Takes one of "low", "medium", or "high". Default is "low".
+
 =item C<last_error>
 
 Returns the message from the last error encountered.
+
+=item C<log_file>
+
+Get/set the name of the log file to use.
+
+=item C<log( $message )>
+
+Write C<$message> to the log.
 
 =back
 
@@ -114,6 +131,11 @@ sub new {
     $self->ua( $args{ ua } || LWP::UserAgent->new( agent => 'WebService::Etsy' ) );
     $self->base_uri( $args{ base_uri } || 'http://beta-api.etsy.com/v1' );
     $self->api_key( $args{ api_key } );
+    $self->default_detail_level( $args{ default_detail_level } );
+    $self->default_limit( $args{ default_limit } );
+    if ( $args{ log_file } ) {
+        $self->log_file( $args{ log_file } );
+    }
     return $self;
 }
 
@@ -133,13 +155,19 @@ sub _call_method {
     my @missing;
     my %params = %{ $method_info->{ params } };
     $params{ api_key } = "";
-    while( $uri =~ /{(.+?)}/g ) {
+    while ( $uri =~ /{(.+?)}/g ) {
         my $param = $1;
         if ( ! exists $args{ $param } ) {
             push @missing, $param;
         } else {
            $uri =~ s/{(.+?)}/$args{ $param }/;
            delete $params{ $param };
+        }
+    }
+    for my $field ( qw( detail_level limit ) ) {
+        if ( exists $params{ $field } && ! exists $args{ $field } ) {
+            my $method = "default_$field";
+            $args{ $field } = $self->$method;
         }
     }
     for ( keys %params ) {
@@ -155,22 +183,50 @@ sub _call_method {
     }
     my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
     $uri = $args{ base_uri } . $uri . "?" . $params;
+    $uri =~ s|tags/children/children\?|tags/children?tag=children&|;
     my $resp = $args{ ua }->get( $uri );
+    my $log_msg = $uri . "," . $resp->code;
     if ( ! $resp->is_success ) {
+        $log_msg .= "," . $resp->content;
+        $self->log( $log_msg );
         $self->last_error( "Error getting resource $uri: " . $resp->status_line );
         return;
     }
+    $self->log( $log_msg );
     my $data = from_json( $resp->content );
-    for ( 0 .. $#{ $data->{ results } } ) {
-        if ( ref $data->{ results }->[ $_ ] ) {
-            $data->{ results }->[ $_ ] = bless $data->{ results }->[ $_ ], 'WebService::Etsy::Result::' . $method_info->{ type };
-        } else {
-            my $value = $data->{ results }->[ $_ ];
-            $data->{ results }->[ $_ ] = bless \$value, 'WebService::Etsy::Result::' . $method_info->{ type };
-        }
 
+    my $detail = ( $data->{ params } && ref $data->{ params } eq "HASH" ) ? $data->{ params }->{ detail_level } : undef;
+    my $class = 'WebService::Etsy::Result::' . $method_info->{ type };
+    for ( 0 .. $#{ $data->{ results } } ) {
+        my %extra = ( api => $self );
+        if ( $detail ) {
+            $extra{ detail_level } = $detail;
+        }
+        $data->{ results }->[ $_ ] = $class->new( $data->{ results }->[ $_ ], %extra );
     }
     return bless $data, "WebService::Etsy::Response";
+}
+
+sub log {
+    my ( $self, $msg ) = @_;
+    my $fh = $self->_log_fh || return;
+    $fh->print( time . "," . $$ . "," . $msg . "\n" );
+}
+
+sub log_file {
+    my ( $self, $file ) = @_;
+    if ( $file ) {
+        my $fh = IO::File->new;
+        $fh->open( ">>" . $file ) or croak qq(Can't open log file $file: $!);
+        $self->_log_fh( $fh );
+    }
+    return;
+}
+
+sub DESTROY {
+    my $self = shift;
+    my $fh = $self->_log_fh;
+    $fh->close if $fh;
 }
 
 =head1 SEE ALSO

@@ -4,9 +4,6 @@ use LWP::UserAgent;
 use JSON;
 use Data::Dumper;
 
-$Data::Dumper::Terse = 1;
-$Data::Dumper::Indent = 0;
-
 my $ua = LWP::UserAgent->new;
 
 my $api_key = shift @ARGV;
@@ -22,6 +19,9 @@ if ( ! $resp->is_success ) {
 
 my $method_response = from_json $resp->content;
 
+$Data::Dumper::Terse = 1;
+$Data::Dumper::Indent = 0;
+
 my %typeMap = (
     int          => 'Int',
     listing      => 'Listing',
@@ -31,6 +31,8 @@ my %typeMap = (
     tag          => 'Tag',
     method       => 'Method',
     'gift-guide' => 'GiftGuide',
+    category     => 'Category',
+    feedback     => 'Feedback',
 );
 
 print qq(
@@ -43,6 +45,7 @@ for my $method ( @{ $method_response->{ results } } ) {
     my $name = $method->{ name };
     my $uri  = $method->{ uri };
     my $type = $typeMap{ $method->{ type } };
+    next unless $type;
     my $params = $method->{ params };
     $params = ( $params ) ? Dumper( $params ) : '{}';
     print qq(

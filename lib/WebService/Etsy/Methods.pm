@@ -14,11 +14,11 @@ sub getUserDetails {
     return $self->_call_method( $info, @_ );
 }
 
-sub getFavorersOfUser {
+sub getFavorersOfShop {
     my $self = shift;
     my $info = {
-        name => 'getFavorersOfUser',
-        uri  => '/users/{user_id}/favorers',
+        name => 'getFavorersOfShop',
+        uri  => '/shops/{user_id}/favorers',
         type => 'User',
         params => {'limit' => 'int','user_id' => 'user_id_or_name','detail_level' => 'enum(low, medium, high)','offset' => 'int'},
     };
@@ -102,13 +102,24 @@ sub getListingDetails {
     return $self->_call_method( $info, @_ );
 }
 
-sub getListings {
+sub getAllListings {
     my $self = shift;
     my $info = {
-        name => 'getListings',
+        name => 'getAllListings',
+        uri  => '/listings/all',
+        type => 'Listing',
+        params => {'sort_order' => 'enum(up, down)','sort_on' => 'enum(created, ending)','limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
+}
+
+sub getShopListings {
+    my $self = shift;
+    my $info = {
+        name => 'getShopListings',
         uri  => '/shops/{user_id}/listings',
         type => 'Listing',
-        params => {'limit' => 'int','user_id' => 'user_id_or_name','detail_level' => 'enum(low, medium, high)','offset' => 'int'},
+        params => {'section_id' => 'int','sort_order' => 'enum(up, down)','sort_on' => 'enum(created, price)','limit' => 'int','user_id' => 'user_id_or_name','detail_level' => 'enum(low, medium, high)','offset' => 'int'},
     };
     return $self->_call_method( $info, @_ );
 }
@@ -163,7 +174,7 @@ sub getListingsByKeyword {
         name => 'getListingsByKeyword',
         uri  => '/listings/keywords/{search_terms}',
         type => 'Listing',
-        params => {'sort_order' => 'enum(up, down)','search_terms' => 'string','min_price' => 'float','max_price' => 'float','sort_on' => 'enum(created, updated, title, price, id)','search_description' => 'enum(true, false)','limit' => 'int','offset' => 'int','detail_level' => 'enum(low, medium, high)'},
+        params => {'sort_order' => 'enum(up, down)','search_terms' => 'array(string)','min_price' => 'float','max_price' => 'float','sort_on' => 'enum(created, price)','search_description' => 'enum(true, false)','limit' => 'int','offset' => 'int','detail_level' => 'enum(low, medium, high)'},
     };
     return $self->_call_method( $info, @_ );
 }
@@ -174,7 +185,62 @@ sub getListingsByTags {
         name => 'getListingsByTags',
         uri  => '/listings/tags/{tags}',
         type => 'Listing',
-        params => {'limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int','tags' => 'string'},
+        params => {'sort_order' => 'enum(up, down)','sort_on' => 'enum(created, price)','limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int','tags' => 'array(string)'},
+    };
+    return $self->_call_method( $info, @_ );
+}
+
+sub getListingsByMaterials {
+    my $self = shift;
+    my $info = {
+        name => 'getListingsByMaterials',
+        uri  => '/listings/materials/{materials}',
+        type => 'Listing',
+        params => {'sort_order' => 'enum(up, down)','sort_on' => 'enum(created, price)','materials' => 'array(string)','limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
+}
+
+sub getListingsByCategory {
+    my $self = shift;
+    my $info = {
+        name => 'getListingsByCategory',
+        uri  => '/listings/category/{category}',
+        type => 'Listing',
+        params => {'sort_order' => 'enum(up, down)','sort_on' => 'enum(created, price)','limit' => 'int','category' => 'string','detail_level' => 'enum(low, medium, high)','offset' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
+}
+
+sub getListingsByColor {
+    my $self = shift;
+    my $info = {
+        name => 'getListingsByColor',
+        uri  => '/listings/color/{color}',
+        type => 'Listing',
+        params => {'color' => 'color_triplet','wiggle' => 'int','limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
+}
+
+sub getListingsByColorAndKeywords {
+    my $self = shift;
+    my $info = {
+        name => 'getListingsByColorAndKeywords',
+        uri  => '/listings/color/{color}/keywords/{search_terms}',
+        type => 'Listing',
+        params => {'color' => 'color_triplet','wiggle' => 'int','search_terms' => 'array(string)','limit' => 'int','detail_level' => 'enum(low, medium, high)','offset' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
+}
+
+sub getTopTags {
+    my $self = shift;
+    my $info = {
+        name => 'getTopTags',
+        uri  => '/tags',
+        type => 'Tag',
+        params => {},
     };
     return $self->_call_method( $info, @_ );
 }
@@ -190,13 +256,24 @@ sub getChildTags {
     return $self->_call_method( $info, @_ );
 }
 
-sub getTopTags {
+sub getTopCategories {
     my $self = shift;
     my $info = {
-        name => 'getTopTags',
-        uri  => '/tags/top',
-        type => 'Tag',
+        name => 'getTopCategories',
+        uri  => '/categories',
+        type => 'Category',
         params => {},
+    };
+    return $self->_call_method( $info, @_ );
+}
+
+sub getChildCategories {
+    my $self = shift;
+    my $info = {
+        name => 'getChildCategories',
+        uri  => '/categories/{category}/children',
+        type => 'Category',
+        params => {'category' => 'string'},
     };
     return $self->_call_method( $info, @_ );
 }
@@ -208,6 +285,50 @@ sub getGiftGuides {
         uri  => '/gift-guides',
         type => 'GiftGuide',
         params => {},
+    };
+    return $self->_call_method( $info, @_ );
+}
+
+sub getFeedbackForUser {
+    my $self = shift;
+    my $info = {
+        name => 'getFeedbackForUser',
+        uri  => '/users/{user_id}/feedback',
+        type => 'Feedback',
+        params => {'limit' => 'int','user_id' => 'user_id_or_name','offset' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
+}
+
+sub getFeedbackAsBuyer {
+    my $self = shift;
+    my $info = {
+        name => 'getFeedbackAsBuyer',
+        uri  => '/users/{user_id}/feedback/buyer',
+        type => 'Feedback',
+        params => {'limit' => 'int','user_id' => 'user_id_or_name','offset' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
+}
+
+sub getFeedbackAsSeller {
+    my $self = shift;
+    my $info = {
+        name => 'getFeedbackAsSeller',
+        uri  => '/users/{user_id}/feedback/seller',
+        type => 'Feedback',
+        params => {'limit' => 'int','user_id' => 'user_id_or_name','offset' => 'int'},
+    };
+    return $self->_call_method( $info, @_ );
+}
+
+sub getFeedbackForOthers {
+    my $self = shift;
+    my $info = {
+        name => 'getFeedbackForOthers',
+        uri  => '/users/{user_id}/feedback/others',
+        type => 'Feedback',
+        params => {'limit' => 'int','user_id' => 'user_id_or_name','offset' => 'int'},
     };
     return $self->_call_method( $info, @_ );
 }
