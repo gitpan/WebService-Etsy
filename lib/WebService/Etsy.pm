@@ -7,12 +7,12 @@ use JSON;
 use Carp;
 use WebService::Etsy::Response;
 use IO::File;
-use WebService::Etsy::Result;
+use WebService::Etsy::Resource;
 
 use base qw( Class::Accessor WebService::Etsy::Methods );
 __PACKAGE__->mk_accessors( qw( ua api_key base_uri last_error default_detail_level default_limit _log_fh ) );
 
-our $VERSION = '0.5';
+our $VERSION = '0.6';
 
 =head1 NAME
 
@@ -32,16 +32,16 @@ WebService::Etsy - Access the Etsy REST API.
     print "Found: " . $resp->count . " users\n";
     print "Have: " . scalar @{ $resp->results } . " results\n";
 
-    # But also behaves like an arrayref of Result objects
+    # But also behaves like an arrayref of Resource objects
     for ( @$resp ) {
-        # Results are objects, like WebService::Etsy::User
+        # Resources are objects, like WebService::Etsy::Resource::User
         print $_->user_name, "\n";
     }
 
     $resp = $api->getUserDetails( user_id => 'testuser' );
-    # As a convenience, you can call Result object methods
+    # As a convenience, you can call Resource object methods
     # on the Response object, which will be called on the first
-    # Result object so
+    # Resource object so
     print $resp->user_name, "\n";
     # is the same as
     print $resp->[ 0 ]->user_name, "\n";
@@ -64,7 +64,7 @@ Currently the data is provided just as it comes back from the Etsy API. Future d
 
 Calls to the API methods of the C<WebService::Etsy> object will return a L<WebService::Etsy::Response> object. See that object's documentation on the methods available.
 
-The Response object contains an arrayref of L<WebService::Etsy::Result> objects, which implement interfaces to match the documentation at L<http://developer.etsy.com/docs#resource_types>. See the L<WebService::Etsy::Result> page for documentation on specific methods.
+The Response object contains an arrayref of L<WebService::Etsy::Resource> objects, which implement interfaces to match the documentation at L<http://developer.etsy.com/docs#resource_types>. See the L<WebService::Etsy::Resource> page for documentation on specific methods.
 
 =head1 METHODS
 
@@ -183,7 +183,6 @@ sub _call_method {
     }
     my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
     $uri = $args{ base_uri } . $uri . "?" . $params;
-    $uri =~ s|tags/children/children\?|tags/children?tag=children&|;
     my $resp = $args{ ua }->get( $uri );
     my $log_msg = $uri . "," . $resp->code;
     if ( ! $resp->is_success ) {
@@ -196,7 +195,7 @@ sub _call_method {
     my $data = from_json( $resp->content );
 
     my $detail = ( $data->{ params } && ref $data->{ params } eq "HASH" ) ? $data->{ params }->{ detail_level } : undef;
-    my $class = 'WebService::Etsy::Result::' . $method_info->{ type };
+    my $class = 'WebService::Etsy::Resource::' . $method_info->{ type };
     for ( 0 .. $#{ $data->{ results } } ) {
         my %extra = ( api => $self );
         if ( $detail ) {
@@ -231,7 +230,7 @@ sub DESTROY {
 
 =head1 SEE ALSO
 
-L<http://www.etsy.com/storque/etsy-news/tech-updates-handmade-code-etsys-beta-api-3055/>, L<http://developer.etsy.com/>, L<WebService::Etsy::Response>, L<WebService::Etsy::Result>.
+L<http://www.etsy.com/storque/etsy-news/tech-updates-handmade-code-etsys-beta-api-3055/>, L<http://developer.etsy.com/>, L<WebService::Etsy::Response>, L<WebService::Etsy::Resource>.
 
 =head1 AUTHOR
 

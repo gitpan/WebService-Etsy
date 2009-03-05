@@ -1,4 +1,4 @@
-package WebService::Etsy::Result;
+package WebService::Etsy::Resource;
 
 use strict;
 use warnings;
@@ -7,22 +7,22 @@ __PACKAGE__->mk_accessors( qw( api detail_level ) );
 
 =head1 NAME
 
-WebService::Etsy::Result - Returned results from the Etsy API.
+WebService::Etsy::Resource - Returned resources from the Etsy API.
 
 =head1 SYNOPSIS
 
     my $resp = $api->getFeaturedSellers( detail_level => 'medium' );
     # call methods on the object
     print $resp->count . " featured sellers\n";
-    # use the object like an arrayref of results
+    # use the object like an arrayref of resources
     for my $shop ( @$resp ) {
-        # $shop is a WebService::Etsy::Result::Shop object
+        # $shop is a WebService::Etsy::Resource::Shop object
         print $shop->shop_name, "\n";
     }
 
 =head1 DESCRIPTION
 
-The API returns different result types - shops, users, listings, methods, tags, ints, and strings.
+The API returns different resource types - shops, users, listings, methods, tags, materials, sections, feedbacks, ints, and strings.
 
 Each return type has its own corresponding Perl class, with methods appropriate to its contents.
 
@@ -34,7 +34,7 @@ Each return type has its own corresponding Perl class, with methods appropriate 
 
 =item C<new( $data )>
 
-Constructor method inherited by Result classes from the Result base class. Takes the data for the result as extracted from the API response.
+Constructor method inherited by Resource classes from the Resource base class. Takes the data for the resource as extracted from the API response.
 
 Generally only called by other methods in this library.
 
@@ -69,14 +69,14 @@ sub _init {
 
 =head1 RESULT OBJECTS
 
-=head2 WebService::Etsy::Result::String
+=head2 WebService::Etsy::Resource::String
 
 The object behaves just like a string in scalar context. It does provide a C<value()> method if you need it.
 
 =cut
 
-package WebService::Etsy::Result::String;
-use base qw( WebService::Etsy::Result );
+package WebService::Etsy::Resource::String;
+use base qw( WebService::Etsy::Resource );
 __PACKAGE__->mk_accessors( qw( value ) );
 
 use overload '""' => "stringify", fallback => 1;
@@ -87,29 +87,29 @@ sub stringify {
 
 #-------
 
-=head2 WebService::Etsy::Result::Int
+=head2 WebService::Etsy::Resource::Int
 
 The object behaves just like an integer in scalar context. It does provide a C<value()> method if you need it.
 
 =cut
 
-package WebService::Etsy::Result::Int;
-use base qw( WebService::Etsy::Result::String );
+package WebService::Etsy::Resource::Int;
+use base qw( WebService::Etsy::Resource::String );
 
 #-------
 
-=head2 WebService::Etsy::Result::Material
+=head2 WebService::Etsy::Resource::Material
 
 The object behaves just like a string in scalar context. It does provide a C<value()> method if you need it.
 
 =cut
 
-package WebService::Etsy::Result::Material;
-use base qw( WebService::Etsy::Result::String );
+package WebService::Etsy::Resource::Material;
+use base qw( WebService::Etsy::Resource::String );
 
 #-------
 
-=head2 WebService::Etsy::Result::Tag
+=head2 WebService::Etsy::Resource::Tag
 
 The object behaves just like a string in scalar context. It does provide a C<value()> method if you need it.
 
@@ -129,8 +129,8 @@ The "child tags" of this tag. Equivalent to calling C<getChildTags> with this ta
 
 =cut
 
-package WebService::Etsy::Result::Tag;
-use base qw( WebService::Etsy::Result::String );
+package WebService::Etsy::Resource::Tag;
+use base qw( WebService::Etsy::Resource::String );
 __PACKAGE__->mk_accessors( qw( spaced ) );
 
 sub children {
@@ -148,7 +148,7 @@ sub _init {
 
 #-------
 
-=head2 WebService::Etsy::Result::Category
+=head2 WebService::Etsy::Resource::Category
 
 The object behaves just like a string in scalar context. It does provide a C<value()> method if you need it.
 
@@ -168,8 +168,8 @@ The "child categories" of this tag. Equivalent to calling C<getChildCategories> 
 
 =cut
 
-package WebService::Etsy::Result::Category;
-use base qw( WebService::Etsy::Result::Tag );
+package WebService::Etsy::Resource::Category;
+use base qw( WebService::Etsy::Resource::Tag );
 
 sub children {
     my $self = shift;
@@ -178,7 +178,7 @@ sub children {
 
 #-------
 
-=head2 WebService::Etsy::Result::User
+=head2 WebService::Etsy::Resource::User
 
 The object includes methods corresponding to the field values described at L<http://developer.etsy.com/docs#users>.
 
@@ -196,8 +196,8 @@ If the user is a seller, returns the shop object for the user. Equivalent to cal
 
 =cut
 
-package WebService::Etsy::Result::User;
-use base qw( WebService::Etsy::Result );
+package WebService::Etsy::Resource::User;
+use base qw( WebService::Etsy::Resource );
 __PACKAGE__->mk_accessors( qw( user_name user_id url image_url_25x25 image_url_30x30 image_url_50x50 image_url_75x75 join_epoch city gender lat lon transaction_buy_count transaction_sold_count is_seller was_featured_seller materials last_login_epoch referred_user_count birth_day birth_month bio feedback_count feedback_percent_positive ) );
 
 sub shop {
@@ -220,9 +220,9 @@ sub shop {
 
 #-------
 
-=head2 WebService::Etsy::Result::Shop
+=head2 WebService::Etsy::Resource::Shop
 
-The object includes methods corresponding to the field values described at L<http://developer.etsy.com/docs#shops>. Note that it extends the C<WebService::Etsy::Result::User> class.
+The object includes methods corresponding to the field values described at L<http://developer.etsy.com/docs#shops>. Note that it extends the C<WebService::Etsy::Resource::User> class.
 
 Some of the methods may return undef if the relevant detail level was not requested.
 
@@ -238,8 +238,8 @@ Get the listings for the shop. Equivalent to calling C<getListings> with this sh
 
 =cut
 
-package WebService::Etsy::Result::Shop;
-use base qw( WebService::Etsy::Result::User );
+package WebService::Etsy::Resource::Shop;
+use base qw( WebService::Etsy::Resource::User );
 __PACKAGE__->mk_accessors( qw( banner_image_url last_updated_epoch creation_epoch listing_count shop_name title sale_message announcement is_vacation vacation_message currency_code sections ) );
 
 sub listings {
@@ -260,7 +260,7 @@ sub _init {
     }
     my $api = $self->api;
     for ( @$sections ) {
-        $_ = WebService::Etsy::Result::ShopSection->new( $_, api => $api );
+        $_ = WebService::Etsy::Resource::ShopSection->new( $_, api => $api );
         $_->shop( $self );
     }
     $self->sections( $sections );
@@ -268,7 +268,7 @@ sub _init {
 
 #-------
 
-=head2 WebService::Etsy::Result::Listing
+=head2 WebService::Etsy::Resource::Listing
 
 The object includes methods corresponding to the field values described at L<http://developer.etsy.com/docs#listings>.
 
@@ -286,8 +286,8 @@ Return the shop object for the listing's seller. Equivalent to calling C<getShop
 
 =cut
 
-package WebService::Etsy::Result::Listing;
-use base qw( WebService::Etsy::Result );
+package WebService::Etsy::Resource::Listing;
+use base qw( WebService::Etsy::Resource );
 __PACKAGE__->mk_accessors( qw( listing_id state title url image_url_25x25 image_url_50x50 image_url_75x75 image_url_155x125 image_url_200x200 image_url_430xN creation_epoch views tags materials price currency_code ending_epoch user_id user_name quantity description lat lon city section_id section_title hsv_color rgb_color ) );
 
 sub shop {
@@ -312,21 +312,21 @@ sub _init {
     my $tags = $self->tags;
     if ( $tags ) {
         for ( @$tags ) {
-            $_ = WebService::Etsy::Result::Tag->new( $_, api => $api );
+            $_ = WebService::Etsy::Resource::Tag->new( $_, api => $api );
         }
         $self->tags( $tags );
     }
     my $materials = $self->materials;
     if ( $materials ) {
         for ( @$materials ) {
-            $_ = WebService::Etsy::Result::Material->new( $_, api => $api );
+            $_ = WebService::Etsy::Resource::Material->new( $_, api => $api );
         }
         $self->materials( $materials );
     }
 }
 #-------
 
-=head2 WebService::Etsy::Result::GiftGuide
+=head2 WebService::Etsy::Resource::GiftGuide
 
 The object includes methods corresponding to the field values described at L<http://developer.etsy.com/docs#gift_guides>.
 
@@ -342,8 +342,8 @@ Return the listings in the guide. Equivalent to calling C<getGiftGuides> with th
 
 =cut
 
-package WebService::Etsy::Result::GiftGuide;
-use base qw( WebService::Etsy::Result );
+package WebService::Etsy::Resource::GiftGuide;
+use base qw( WebService::Etsy::Resource );
 __PACKAGE__->mk_accessors( qw( guide_id creation_tsz_epoch description title display_order guide_section_id guide_section_title ) );
 
 sub listings {
@@ -357,7 +357,7 @@ sub listings {
 
 #-------
 
-=head2 WebService::Etsy::Result::Feedback
+=head2 WebService::Etsy::Resource::Feedback
 
 The object includes methods corresponding to the field values described at L<http://developer.etsy.com/docs#feedback>.
 
@@ -393,9 +393,9 @@ Boolean - is the feedback from a seller?
 
 =cut
 
-package WebService::Etsy::Result::Feedback;
-use base qw( WebService::Etsy::Result );
-__PACKAGE__->mk_accessors( qw( creation_epoch feedback_id author_user_id subject_user_id seller_user_id buyer_user_id message disposition image_url_25x25 image_url_fullxfull from_seller from_buyer ) );
+package WebService::Etsy::Resource::Feedback;
+use base qw( WebService::Etsy::Resource );
+__PACKAGE__->mk_accessors( qw( url creation_epoch feedback_id author_user_id subject_user_id seller_user_id buyer_user_id message disposition value image_url_25x25 image_url_fullxfull from_seller from_buyer ) );
 
 sub _init {
     my $self = shift;
@@ -439,7 +439,7 @@ sub subject {
 
 #-------
 
-=head2 WebService::Etsy::Result::ShopSection
+=head2 WebService::Etsy::Resource::ShopSection
 
 The object includes methods corresponding to the field values described at L<http://developer.etsy.com/docs#shop_sections>.
 
@@ -455,8 +455,8 @@ Get the listings in a section. Equivalent to calling C<getShopListings> section'
 
 =cut
 
-package WebService::Etsy::Result::ShopSection;
-use base qw( WebService::Etsy::Result );
+package WebService::Etsy::Resource::ShopSection;
+use base qw( WebService::Etsy::Resource );
 __PACKAGE__->mk_accessors( qw( shop section_id title listing_count ) );
 
 sub listings {
@@ -467,17 +467,17 @@ sub listings {
 
 #-------
 
-=head2 WebService::Etsy::Result::Method
+=head2 WebService::Etsy::Resource::Method
 
 The object includes methods corresponding to the field values described at L<http://developer.etsy.com/docs#methods>.
 
 =cut
 
-package WebService::Etsy::Result::Method;
-use base qw( WebService::Etsy::Result );
+package WebService::Etsy::Resource::Method;
+use base qw( WebService::Etsy::Resource );
 __PACKAGE__->mk_accessors( qw( name description uri params type http_method ) );
 
-package WebService::Etsy::Result;
+package WebService::Etsy::Resource;
 
 =head1 SEE ALSO
 

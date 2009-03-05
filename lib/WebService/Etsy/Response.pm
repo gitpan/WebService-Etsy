@@ -17,7 +17,7 @@ WebService::Etsy::Response - Returned data from the Etsy API.
     my $resp = $api->getFeaturedSellers( detail_level => 'medium' );
     # call methods on the object
     print $resp->count . " featured sellers\n";
-    # use the object like an arrayref of Result objects
+    # use the object like an arrayref of Resource objects
     for my $shop ( @$resp ) {
         print $shop->shop_name, "\n";
     }
@@ -28,11 +28,11 @@ This class encapsulates the response from the API, as described at L<http://deve
 
 =head2 Arrayification
 
-For convenience, the Response object behaves like an arrayref of Result objects when used as such.
+For convenience, the Response object behaves like an arrayref of Resource objects when used as such.
 
 =head2 Stringification
 
-When used in a scalar context, the Response object will return a comma-separated list of stringified Result objects. This is noteworthy for the case of
+When used in a scalar context, the Response object will return a comma-separated list of stringified Resource objects. This is noteworthy for the case of
 
     print $api->getServerEpoch() . "\n";
 
@@ -46,7 +46,7 @@ which will print the epoch directly, without having to do something like
 
 =item C<results()>
 
-An arrayref of L<WebService::Etsy::Result> objects. Using the Response object as an arrayref accesses this results arrayref.
+An arrayref of L<WebService::Etsy::Resource> objects. Using the Response object as an arrayref accesses this results arrayref.
 
 =item C<params()>
 
@@ -58,13 +58,13 @@ The number of results found (not necessarily the number returned).
 
 =item C<type()>
 
-The Result objects' type.
+The Resource objects' type.
 
 =back
 
 =head1 AUTOLOADED METHODS
 
-As a convenience, the Response object will accept method calls the belong to its Result objects. The method calls will be executed on the first object in the results arrayref. This allows you to use the Response object just like a Result object, which is useful when a method call (e.g. C<getUserDetails>) is expected to return one and only one result.
+As a convenience, the Response object will accept method calls the belong to its Resource objects. The method calls will be executed on the first object in the results arrayref. This allows you to use the Response object just like a Resource object, which is useful when a method call (e.g. C<getUserDetails>) is expected to return one and only one result.
 
 Note that C<WebService::Etsy::Method> objects include methods that collide with C<WebService::Etsy::Response> object methods, in which case you'll need to use the longer form of C<$resp-E<gt>[ 0 ]-E<gt>method()> (although this shouldn't matter too much since there aren't currently any API methods that return only one method result).
 
@@ -102,7 +102,7 @@ sub DESTROY {
 
 =head1 SEE ALSO
 
-L<http://developer.etsy.com/docs#api_response_structure>, L<WebService::Etsy::Result>.
+L<http://developer.etsy.com/docs#api_response_structure>, L<WebService::Etsy::Resource>.
 
 =head1 AUTHOR
 
