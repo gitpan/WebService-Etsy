@@ -11,7 +11,7 @@ if ( ! defined $api_key ) {
     print STDERR "No API key supplied\n";
     exit 0;
 }
-my $resp = $ua->get( 'http://beta-api.etsy.com/v1/?api_key=' . $api_key );
+my $resp = $ua->get( 'http://openapi.etsy.com/v2/sandbox/public/?api_key=' . $api_key );
 if ( ! $resp->is_success ) {
     print STDERR "Error getting method table: " . $resp->status_line . "\n";
     exit 0;
@@ -22,32 +22,26 @@ my $method_response = from_json $resp->content;
 $Data::Dumper::Terse = 1;
 $Data::Dumper::Indent = 0;
 
-my %typeMap = (
-    int          => 'Int',
-    listing      => 'Listing',
-    string       => 'String',
-    shop         => 'Shop',
-    user         => 'User',
-    tag          => 'Tag',
-    method       => 'Method',
-    'gift-guide' => 'GiftGuide',
-    category     => 'Category',
-    feedback     => 'Feedback',
-);
-
 print qq(
 package WebService::Etsy::Methods;
 use strict;
 use warnings;
 );
 
+my %seen;
 for my $method ( @{ $method_response->{ results } } ) {
     my $name = $method->{ name };
+    next if $seen{$name};
+    $seen{$name} = 1;
     my $uri  = $method->{ uri };
-    my $type = $typeMap{ $method->{ type } };
-    next unless $type;
+    my $type = $method->{ type };
+    my $visibility = $method->{ visibility };
+    my $description = $method->{ description };
+    my $http_method = $method->{ http_method };
     my $params = $method->{ params };
     $params = ( $params ) ? Dumper( $params ) : '{}';
+    my $defaults = $method->{ defaults };
+    $defaults = ( $defaults ) ? Dumper( $defaults ) : '{}';
     print qq(
 sub $name {
     my \$self = shift;
@@ -56,6 +50,10 @@ sub $name {
         uri  => '$uri',
         type => '$type',
         params => $params,
+        visibility => '$visibility',
+        http_method => '$http_method',
+        defaults => $defaults,
+        description => "$description",
     };
     return \$self->_call_method( \$info, \@_ );
 }

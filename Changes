@@ -34,3 +34,8 @@
     - Renamed WebService::Etsy::Result (and subclasses) to WebService::Etsy::Resource
     - Added extra fields to the Feedback resource object
     - Removed workaround for bug in getChildTags().
+
+0.7 2010-11-23
+
+    - Interim release to provide basic functionality with the v2 API.
+    - Not all new resources supported.

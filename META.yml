@@ -1,6 +1,6 @@
 ---
 name: WebService-Etsy
-version: 0.6
+version: 0.7
 author:
   - Ian Malpass (ian-cpan@indecorous.com)
 abstract: Access the Etsy REST API.
@@ -15,7 +15,7 @@ build_requires:
 provides:
   WebService::Etsy:
     file: lib/WebService/Etsy.pm
-    version: 0.6
+    version: 0.7
   WebService::Etsy::Methods:
     file: lib/WebService/Etsy/Methods.pm
   WebService::Etsy::Resource:

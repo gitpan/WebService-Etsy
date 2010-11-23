@@ -10,9 +10,9 @@ use IO::File;
 use WebService::Etsy::Resource;
 
 use base qw( Class::Accessor WebService::Etsy::Methods );
-__PACKAGE__->mk_accessors( qw( ua api_key base_uri last_error default_detail_level default_limit _log_fh ) );
+__PACKAGE__->mk_accessors( qw( ua api_key base_uri last_error default_detail_level default_limit _log_fh use_sandbox ) );
 
-our $VERSION = '0.6';
+our $VERSION = '0.7';
 
 =head1 NAME
 
@@ -48,7 +48,7 @@ WebService::Etsy - Access the Etsy REST API.
 
 =head1 DESCRIPTION
 
-Note: this module is alpha code - a fairly functional proof of concept. The API itself is in beta. Details are at L<http://www.etsy.com/storque/etsy-news/tech-updates-handmade-code-etsys-beta-api-3055/>.
+Note: this module is alpha code - a fairly functional proof of concept. In addition, this 0.7 release is a quick hack to make something that works with the v2 API since the v1 API is being taken offline. It doesn't support the "private" API, only the "public" (no OAuth) API, and then only a subset that matches roughly with what the v1 API provided. The v2 API's method names aren't backwards-compatible with the v1 API so some re-writing will be necessary.
 
 This module accesses the Etsy API, as described at L<http://developer.etsy.com/>.
 
@@ -64,7 +64,7 @@ Currently the data is provided just as it comes back from the Etsy API. Future d
 
 Calls to the API methods of the C<WebService::Etsy> object will return a L<WebService::Etsy::Response> object. See that object's documentation on the methods available.
 
-The Response object contains an arrayref of L<WebService::Etsy::Resource> objects, which implement interfaces to match the documentation at L<http://developer.etsy.com/docs#resource_types>. See the L<WebService::Etsy::Resource> page for documentation on specific methods.
+The Response object contains an arrayref of L<WebService::Etsy::Resource> objects, which implement interfaces to match the documentation at L<http://developer.etsy.com/docs/read/resources>. See the L<WebService::Etsy::Resource> page for documentation on specific methods.
 
 =head1 METHODS
 
@@ -72,11 +72,15 @@ The Response object contains an arrayref of L<WebService::Etsy::Resource> object
 
 =item C<new( %opts )>
 
-Create a new API object. Takes a hash of options which can include C<ua>, C<api_key>, C<base_uri>, C<log_file>, C<default_limit>, and C<default_detail_level>, which correspond to setting the values of the relevant methods (described below).
+Create a new API object. Takes a hash of options which can include C<ua>, C<api_key>, C<use_sandbox>, C<base_uri>, C<log_file>, C<default_limit>, and C<default_detail_level>, which correspond to setting the values of the relevant methods (described below).
 
 =item C<api_key( $key )>
 
 Get/set the API key to use for API requests.
+
+=item C<use_sandbox( $bool )>
+
+Boolean toggle controlling whether to access the sandbox version of the API or not.
 
 =item C<base_uri( $uri )>
 
@@ -129,8 +133,9 @@ sub new {
     my %args = @_;
 
     $self->ua( $args{ ua } || LWP::UserAgent->new( agent => 'WebService::Etsy' ) );
-    $self->base_uri( $args{ base_uri } || 'http://beta-api.etsy.com/v1' );
+    $self->base_uri( $args{ base_uri } || 'http://openapi.etsy.com/v2' );
     $self->api_key( $args{ api_key } );
+    $self->use_sandbox( $args{ use_sandbox } );
     $self->default_detail_level( $args{ default_detail_level } );
     $self->default_limit( $args{ default_limit } );
     if ( $args{ log_file } ) {
@@ -147,6 +152,7 @@ sub _call_method {
         if ( ! exists $args{ $_ } ) {
             $args{ $_ } = $self->$_();
         }
+
     }
     if ( ! $args{ api_key } ) {
         croak "No API key specified";
@@ -182,7 +188,7 @@ sub _call_method {
         return;
     }
     my $params = join "&", map{ "$_=$params{ $_ }" } keys %params;
-    $uri = $args{ base_uri } . $uri . "?" . $params;
+    $uri = $args{ base_uri } . $self->_sandbox . '/' . $method_info->{visibility} . $uri . "?" . $params;
     my $resp = $args{ ua }->get( $uri );
     my $log_msg = $uri . "," . $resp->code;
     if ( ! $resp->is_success ) {
@@ -204,6 +210,11 @@ sub _call_method {
         $data->{ results }->[ $_ ] = $class->new( $data->{ results }->[ $_ ], %extra );
     }
     return bless $data, "WebService::Etsy::Response";
+}
+
+sub _sandbox {
+    my $self = shift;
+    return ($self->use_sandbox) ? '/sandbox' : '';
 }
 
 sub log {
